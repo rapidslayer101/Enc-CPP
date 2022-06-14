@@ -32,91 +32,54 @@ const int64 Constants[80]
             0x28db77f523047d84, 0x32caab7b40c72493,0x3c9ebe0a15c9bebc, 0x431d67c49c100d4c,
             0x4cc5d4becb3e42b6, 0x597f299cfc657e2a,0x5fcb6fab3ad6faec, 0x6c44198c4a475817 };
 
-string gethex(string bin)
-{
-    if (bin == "0000")
-        return "0";
-    if (bin == "0001")
-        return "1";
-    if (bin == "0010")
-        return "2";
-    if (bin == "0011")
-        return "3";
-    if (bin == "0100")
-        return "4";
-    if (bin == "0101")
-        return "5";
-    if (bin == "0110")
-        return "6";
-    if (bin == "0111")
-        return "7";
-    if (bin == "1000")
-        return "8";
-    if (bin == "1001")
-        return "9";
-    if (bin == "1010")
-        return "a";
-    if (bin == "1011")
-        return "b";
-    if (bin == "1100")
-        return "c";
-    if (bin == "1101")
-        return "d";
-    if (bin == "1110")
-        return "e";
-    if (bin == "1111")
-        return "f";
+string get_hex(string bin) {
+    if (bin == "0000") return "0"; if (bin == "0001") return "1"; if (bin == "0010") return "2";
+    if (bin == "0011") return "3"; if (bin == "0100") return "4"; if (bin == "0101") return "5";
+    if (bin == "0110") return "6"; if (bin == "0111") return "7"; if (bin == "1000") return "8";
+    if (bin == "1001") return "9"; if (bin == "1010") return "a"; if (bin == "1011") return "b";
+    if (bin == "1100") return "c"; if (bin == "1101") return "d"; if (bin == "1110") return "e";
+    if (bin == "1111") return "f";
 }
 
-string decimaltohex(int64 deci)
-{
-    string EQBIN = bitset<64>(deci).to_string();
-    string hexstring = "";
+string decimaltohex(int64 deci) {
+    string EQ_BIN = bitset<64>(deci).to_string();
+    string hex_string = "";
     string temp;
     for (unsigned int i = 0;
-         i < EQBIN.length(); i += 4) {
-        temp = EQBIN.substr(i, 4);
-        hexstring += gethex(temp);
+         i < EQ_BIN.length(); i += 4) {
+        temp = EQ_BIN.substr(i, 4);
+        hex_string += get_hex(temp);
     }
-    return hexstring;
+    return hex_string;
 }
 
-int64 BintoDec(string bin)
-{
-
+int64 BintoDec(string bin) {
     int64 value = bitset<64>(bin)
             .to_ullong();
     return value;
 }
 
-int64 rotate_right(int64 x, int n)
-{
+int64 rotate_right(int64 x, int n) {
     return (x >> n) | (x << (64 - n));
 }
 
-int64 shift_right(int64 x, int n)
-{
+int64 shift_right(int64 x, int n) {
     return (x >> n);
 }
 
 void separator(string getBlock)
 {
-    int chunknum = 0;
+    int c_num = 0;
     for (unsigned int i = 0;
          i < getBlock.length();
-         i += 64, ++chunknum) {
-        Message[chunknum]
-                = BintoDec(getBlock.substr(i, 64));
-    }
+         i += 64, ++c_num) {Message[c_num] = BintoDec(getBlock.substr(i, 64));}
 
     // Iterate over the range [16, 80]
     for (int g = 16; g < 80; ++g) {
-        int64 WordA = rotate_right(Message[g - 2], 19)
-                      ^ rotate_right(Message[g - 2], 61)
+        int64 WordA = rotate_right(Message[g - 2], 19) ^ rotate_right(Message[g - 2], 61)
                       ^ shift_right(Message[g - 2], 6);
         int64 WordB = Message[g - 7];
-        int64 WordC = rotate_right(Message[g - 15], 1)
-                      ^ rotate_right(Message[g - 15], 8)
+        int64 WordC = rotate_right(Message[g - 15], 1) ^ rotate_right(Message[g - 15], 8)
                       ^ shift_right(Message[g - 15], 7);
         int64 WordD = Message[g - 16];
         int64 T = WordA + WordB + WordC + WordD;
@@ -240,14 +203,15 @@ string SHA512(string myString)
 }
 // above code edited from geeksforgeeks.org
 
-// enc 11.0.0 - CREATED BY RAPIDSLAYER101 (Scott Bree) -- V1-Nonfunctional
-const string b64set = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
-const string b96set = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/¬`!\"£$%^&*()- =[{]};:'@#~\\|,<.>?";
+// this project aims to recreate enc 11.8.0's enclib.py in c++ for faster efficiency
+// enc+ 0.1.0 - CREATED BY RAPIDSLAYER101 (Scott Bree) -- V1-Nonfunctional
+const string _b94set_ = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz+/`!\"$%^&*() -=[{]};:'@#~\\|,<.>?";
+const string _b96set_ = _b94set_+"¬£";
 
 string rand_b96_str(int n) {
     string res = "";
     for (int i = 0; i < n; i++)
-        res += b96set[rand()%96];
+        res += _b96set_[rand()%96];
     return res;
 }
 
@@ -270,8 +234,10 @@ string rand_b96_str(int n) {
 //    return hexadecimal;
 //}
 
-string pass_to_seed(string password, string salt){
-    return SHA512(SHA512(SHA512(SHA512(salt))+password));
+string pass_to_key(string password, string salt, int depth){
+    for (int i = 0; i < depth; i++)
+        password = SHA512(password+salt);
+    return password;
 }
 
 string seed_to_alpha(string seed){
@@ -279,12 +245,12 @@ string seed_to_alpha(string seed){
 }
 
 int main() {
+    cout << rand_b96_str(10) << endl;
     srand(time(NULL));
     auto start = high_resolution_clock::now();
-    cout << pass_to_seed("pass", "salt");
-    cout << "\n" << pass_to_seed("key", "salt");
+    cout << pass_to_key("pass", "salt", 100000);
     auto stop = high_resolution_clock::now();
     auto duration = duration_cast<microseconds>(stop - start);
-    cout << "\n" << duration.count() << endl;
+    cout << "\n" << duration.count() << "Microseconds" << endl;
     return 0;
 }
