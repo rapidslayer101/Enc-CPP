@@ -4,16 +4,12 @@
 #include <chrono>
 #include "SHA512.h"
 
-SHA512 sha512; //instantiate a SHA512 object
-
 using namespace std::chrono;
 using namespace std;
 
-// below code edited from geeksforgeeks.org
-// above code edited from geeksforgeeks.org
-
 // this project aims to recreate enc 11.8.0's enclib.py in c++ for faster efficiency
-// enc++ 0.1.0 - CREATED BY RAPIDSLAYER101 (Scott Bree) -- V1-Nonfunctional
+// enc++ 0.2.0 - CREATED BY RAPIDSLAYER101 (Scott Bree) -- V1-Nonfunctional
+SHA512 sha512; //instantiate a SHA512 object
 const string _b94set_ = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz+/`!\"$%^&*() -=[{]};:'@#~\\|,<.>?";
 const string _b96set_ = _b94set_+"¬£";
 
@@ -49,11 +45,22 @@ string pass_to_key(string password, string salt, int depth){
     return password;
 }
 
+string _xor_(string data, string key, string xor_salt) {
+    string key_value = "";
+    for (int i = 0; i < floor(data.length()/64)+1; i++) {
+        key = sha512.hash(key+xor_salt);
+        key_value += key;
+    }
+    cout << "\n" << key_value.length() << endl;
+}
+
 int main() {
-    //cout << rand_b96_str(10) << endl;
+    string data = rand_b96_str(10000);
     srand(time(NULL));
+    string key = pass_to_key("hello world", "salt", 100000);
+    cout << key;
     auto start = high_resolution_clock::now();
-    cout << pass_to_key("hello world", "salt", 100000);
+    _xor_(data, key, "salt");
     auto stop = high_resolution_clock::now();
     auto duration = duration_cast<microseconds>(stop - start);
     cout << "\n" << duration.count()/1000000.f << " Seconds" << endl;

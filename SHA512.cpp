@@ -3,13 +3,10 @@
  */
 
 #include "SHA512.h"
-#include <stdio.h>
 #include <string>
 #include <string.h>
 #include <iostream>
 #include <iomanip>
-#include <cstdint>
-#include <sstream>
 
 typedef unsigned long long uint64;
 
